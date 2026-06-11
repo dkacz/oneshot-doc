@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""Check the local runtime needed by oneshot-doc."""
+from __future__ import annotations
+
+import importlib
+import importlib.util
+import os
+from pathlib import Path
+import shutil
+import sys
+from typing import Iterable
+
+
+ROOT = Path(__file__).resolve().parents[1]
+ASSETS_DIR = ROOT / "assets"
+PALETTE_PATH = ASSETS_DIR / "palette.py"
+
+
+class CheckResult:
+    def __init__(self, name: str, ok: bool, detail: str) -> None:
+        self.name = name
+        self.ok = ok
+        self.detail = detail
+
+    @property
+    def status(self) -> str:
+        return "OK" if self.ok else "MISSING"
+
+
+def extra_tool_dirs() -> Iterable[Path]:
+    home = Path.home()
+    tex_roots = [
+        home / "Library" / "TinyTeX" / "bin",
+        home / ".TinyTeX" / "bin",
+        home / "TinyTeX" / "bin",
+    ]
+    for tex_root in tex_roots:
+        if tex_root.is_dir():
+            yield tex_root
+            for child in tex_root.iterdir():
+                if child.is_dir():
+                    yield child
+
+    for path in (
+        Path("/Library/TeX/texbin"),
+        Path("/Applications/LibreOffice.app/Contents/MacOS"),
+        Path("/Applications/quarto/bin"),
+    ):
+        if path.is_dir():
+            yield path
+
+
+def find_executable(name: str) -> str | None:
+    found = shutil.which(name)
+    if found:
+        return found
+
+    for directory in extra_tool_dirs():
+        candidate = directory / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
+def check_tool(name: str) -> CheckResult:
+    found = find_executable(name)
+    return CheckResult(name, found is not None, found or "not found")
+
+
+def check_latex_engine() -> CheckResult:
+    engines = []
+    for name in ("xelatex", "lualatex"):
+        found = find_executable(name)
+        if found:
+            engines.append(f"{name}: {found}")
+    return CheckResult(
+        "xelatex or lualatex",
+        bool(engines),
+        "; ".join(engines) if engines else "not found",
+    )
+
+
+def check_python_import(module_name: str) -> CheckResult:
+    try:
+        module = importlib.import_module(module_name)
+    except Exception as exc:
+        return CheckResult(f"python import: {module_name}", False, f"{type(exc).__name__}: {exc}")
+    detail = getattr(module, "__file__", None) or "built-in"
+    return CheckResult(f"python import: {module_name}", True, str(detail))
+
+
+def load_palette_module():
+    spec = importlib.util.spec_from_file_location("oneshot_doc_palette", PALETTE_PATH)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {PALETTE_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_fonts() -> CheckResult:
+    try:
+        palette = load_palette_module()
+        sans_dir, serif_dir = palette.resolve_font_dirs()
+    except Exception as exc:
+        return CheckResult("Source Sans 3 and Source Serif 4 fonts", False, f"{type(exc).__name__}: {exc}")
+    return CheckResult(
+        "Source Sans 3 and Source Serif 4 fonts",
+        True,
+        f"Source Sans: {sans_dir}; Source Serif: {serif_dir}",
+    )
+
+
+def print_table(results: list[CheckResult]) -> None:
+    name_width = max(len("Check"), *(len(result.name) for result in results))
+    status_width = len("MISSING")
+    print(f"{'Check':<{name_width}}  {'Status':<{status_width}}  Detail")
+    print(f"{'-' * name_width}  {'-' * status_width}  {'-' * 40}")
+    for result in results:
+        print(f"{result.name:<{name_width}}  {result.status:<{status_width}}  {result.detail}")
+
+
+def print_install_hints(results: list[CheckResult]) -> None:
+    missing = [result.name for result in results if not result.ok]
+    if not missing:
+        print()
+        print("All checks passed.")
+        return
+
+    print()
+    print("Missing checks: " + ", ".join(missing))
+    print(
+        "Install missing system tools on macOS: brew install quarto pandoc poppler; "
+        "brew install --cask libreoffice; quarto install tinytex"
+    )
+    print(
+        "Install missing system tools on Debian/Ubuntu: install Quarto from the .deb at "
+        "https://quarto.org/docs/get-started/; sudo apt install pandoc poppler-utils "
+        "libreoffice texlive-xetex texlive-luatex"
+    )
+    print("Install missing Python packages: python3 -m pip install python-docx matplotlib pypdf")
+    print(
+        "Install missing fonts: download Source Sans 3 and Source Serif 4 from "
+        "github.com/adobe-fonts into ~/.fonts/source-sans and ~/.fonts/source-serif, "
+        "or set ONESHOT_FONTS_DIR."
+    )
+
+
+def main() -> int:
+    results = [
+        check_tool("quarto"),
+        check_latex_engine(),
+        check_tool("pandoc"),
+        check_tool("soffice"),
+        check_tool("pdftotext"),
+        check_tool("pdftoppm"),
+        check_tool("pdffonts"),
+        check_python_import("docx"),
+        check_python_import("matplotlib"),
+        check_python_import("pypdf"),
+        check_fonts(),
+    ]
+    print(f"oneshot-doc environment check: {ROOT}")
+    print()
+    print_table(results)
+    print_install_hints(results)
+    return 0 if all(result.ok for result in results) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

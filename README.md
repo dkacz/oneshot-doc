@@ -33,6 +33,35 @@ Python:
 
 The bundled scripts otherwise use the Python standard library. There is no `pdfplumber` import in the current scripts.
 
+## Quick start on a clean system
+
+macOS:
+
+```bash
+brew install quarto pandoc poppler
+brew install --cask libreoffice
+quarto install tinytex
+pip3 install python-docx matplotlib pypdf
+```
+
+Debian/Ubuntu:
+
+```bash
+# Install Quarto from the .deb package at https://quarto.org/docs/get-started/
+sudo apt install pandoc poppler-utils libreoffice texlive-xetex texlive-luatex
+pip3 install python-docx matplotlib pypdf
+```
+
+Install Source Sans 3 and Source Serif 4 from Adobe Fonts under the SIL Open Font License:
+
+```bash
+mkdir -p ~/.fonts/source-sans ~/.fonts/source-serif
+# Download from https://github.com/adobe-fonts/source-sans and https://github.com/adobe-fonts/source-serif
+# Put Source Sans 3 font files in ~/.fonts/source-sans and Source Serif 4 font files in ~/.fonts/source-serif.
+# Alternatively, set ONESHOT_FONTS_DIR to a directory containing source-sans/ and source-serif/.
+python3 checks/check_env.py
+```
+
 ## Fonts
 
 Install Source Sans 3 and Source Serif 4. Both are distributed by Adobe Fonts under the SIL Open Font License.
