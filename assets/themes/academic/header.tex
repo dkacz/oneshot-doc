@@ -1,0 +1,107 @@
+% oneshot-doc: academic lualatex header (scrartcl + Quarto)
+\usepackage[a4paper,{{GEOMETRY_OPTIONS}},headheight=15pt,includeheadfoot]{geometry}
+\usepackage{fontspec}
+\setmainfont{SourceSerif4}[
+  Path = {{SERIF_FONT_DIR}},
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont = *-Semibold,
+  ItalicFont = *-It,
+  BoldItalicFont = *-SemiboldIt,
+  Numbers = Proportional
+]
+\setsansfont{SourceSans3}[
+  Path = {{SANS_FONT_DIR}},
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont = *-Semibold,
+  ItalicFont = *-It,
+  BoldItalicFont = *-SemiboldIt
+]
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{etoolbox}
+\usepackage{float}
+\usepackage{tcolorbox}
+\usepackage{needspace}
+\usepackage{multicol}
+
+\definecolor{WPBlue}{HTML}{{{PRIMARY}}}
+\definecolor{WPRule}{HTML}{{{RULE}}}
+\definecolor{WPGray}{HTML}{{{GRAY}}}
+\definecolor{WPLight}{HTML}{{{LIGHT}}}
+\definecolor{WPBrick}{HTML}{{{ACCENT}}}
+
+\linespread{ {{LINESPREAD}} }
+\setlength{\parskip}{ {{PARSKIP}} }
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{2.5em}
+\setcounter{secnumdepth}{ {{SECNUMDEPTH}} }
+
+\makeatletter
+\renewcommand{\maketitle}{%
+  \begin{center}
+    \vspace*{-6mm}
+    \makebox[\linewidth][c]{%
+      {\color{WPRule}\rule[0.45ex]{0.22\linewidth}{0.5pt}}%
+      \hspace{0.9em}{\small\sffamily\scshape\color{WPGray}{{KIND_LABEL}}\hspace{0.9em}}%
+      {\color{WPRule}\rule[0.45ex]{0.22\linewidth}{0.5pt}}%
+    }\par
+    \vspace{1.45em}
+    {\{{TITLE_SIZE}}\rmfamily\bfseries\color{WPBlue}\@title\par}
+    \vspace{0.6em}
+    \ifdefined\@subtitle\ifx\@subtitle\@empty\else
+      {\Large\rmfamily\color{WPGray}\@subtitle\par}
+      \vspace{0.7em}
+    \fi\fi
+    {\large\rmfamily\color{WPGray}\@author\par}
+    \vspace{0.2em}
+    {\small\rmfamily\color{WPGray}{{DATE_LABEL}}\par}
+    \vspace{1.2em}
+  \end{center}
+}
+\makeatother
+
+\setkomafont{section}{\Large\bfseries\rmfamily\color{WPBlue}}
+\setkomafont{subsection}{\large\bfseries\rmfamily\color{WPBlue}}
+\setkomafont{subsubsection}{\normalsize\bfseries\rmfamily\color{WPBlue}}
+\RedeclareSectionCommand[beforeskip=1.9ex plus .5ex minus .2ex,afterskip=0.8ex]{section}
+\RedeclareSectionCommand[beforeskip=1.9ex plus .5ex minus .2ex,afterskip=.6ex]{subsection}
+\RedeclareSectionCommand[beforeskip=1.6ex plus .4ex minus .2ex,afterskip=.5ex]{subsubsection}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\color{WPGray}{{HEADER_LEFT}}}
+\fancyhead[R]{\small\sffamily\color{WPGray}\thepage}
+\renewcommand{\headrulewidth}{0.35pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{WPRule}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0pt}
+
+\captionsetup{
+  font={small,sf},
+  labelfont={bf,color=WPBlue},
+  textfont={color=WPGray},
+  skip=5pt
+}
+
+\AtBeginDocument{\hypersetup{
+  colorlinks=true,
+  linkcolor=WPBlue,
+  urlcolor=WPBlue,
+  citecolor=WPBlue
+}}
+
+\newtcolorbox{KeyBox}{
+  colback=WPLight, colframe=WPBrick, boxrule=0pt,
+  leftrule=2.4pt, arc=1.2pt, left=9pt, right=9pt, top=6pt, bottom=6pt,
+  fontupper=\small\rmfamily
+}
+\newtcolorbox{MethodBox}{
+  colback=white, colframe=WPRule, boxrule=0.6pt,
+  arc=1.2pt, left=9pt, right=9pt, top=5pt, bottom=5pt,
+  fontupper=\footnotesize\rmfamily
+}

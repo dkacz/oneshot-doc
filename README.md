@@ -4,6 +4,16 @@
 
 The skill is for Claude Code users who want reproducible production of briefs, reports, decision memos, letters, and analytical summaries (presets: brief, report, memo, letter, summary). The operator is led by the hand: the interview asks one question at a time with a recommendation, and after delivery the operator only says whether they are satisfied and what to change. The skill protocol is in English. Output documents can be written in Polish or English, depending on the contract.
 
+## Visual themes
+
+The look of the document is chosen in the interview, not hard-coded. The skill ships three named themes, each a fully tested code path (LaTeX header, figure palette, DOCX reference styles, DOCX postprocess colors):
+
+- `think-tank` (default): sans headings, serif body, navy primary, brick accent, assertive title block.
+- `academic`: serif typography, centered title block framed by thin rules, warm paper tones, maroon accent.
+- `minimal`: sans throughout, near-black ink, generous whitespace, teal accent, no decorative rules.
+
+Within a theme the contract may override the accent color and the base font size (10-11 pt). There is no free-form styling outside the named themes; that bound is what keeps the output predictable, because every theme passes the same render, gate, and parity pipeline before it ships. All themes use the same two font families, so the installation requirements do not change with the theme.
+
 ## Installation
 
 Clone this repository into the Claude skills directory:
@@ -80,7 +90,7 @@ Phase 0 creates or loads the document family memory: glossary, decisions, and ar
 
 Phase 1 runs the interview and writes a complete `CONTRACT.md`. The interview stops only when all fields are settled.
 
-Phase 2 produces figures, the Quarto source, the LaTeX header, `NUMBERS.md`, and the first PDF/DOCX render cycle through the canonical runner.
+Phase 2 produces figures, the Quarto source, the LaTeX header from the contract theme, `NUMBERS.md`, and the first PDF/DOCX render cycle through the canonical runner.
 
 Phase 3 runs programmatic gates for page budget, PDF/DOCX parity, dashes, metanarration, number licensing, bibliography hygiene, embedded fonts, figure label diacritics, screenshots, and DOCX preview.
 

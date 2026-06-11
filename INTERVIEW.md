@@ -16,7 +16,7 @@ The interview must produce a contract from which the document can be written wit
 
 ## Branches to Traverse (Recommended Order)
 
-1. **Frame.** Document type and preset, audience, purpose (what the reader should do or understand after reading), language, page budget, output format.
+1. **Frame.** Document type and preset, audience, purpose (what the reader should do or understand after reading), language, page budget, output format. Visual theme: recommend one of the named themes (`think-tank`, `academic`, `minimal`) from the audience and genre, and settle the optional accent color and base font size. Do not offer styling outside the named themes; if the operator wants a different look, record the closest theme plus an accent override.
 2. **Thesis and argument.** One main thesis as a declarative sentence. Three to seven argument points in the operator's order. The strongest evidence and whether the sources support it.
 3. **Canonical numbers.** The list of numbers the document may cite, each with a source address. Numbers that must not be used, for example unapproved or working values. This branch is mostly your source work, not questions.
 4. **Forbidden zones.** Claims we do not make. Tones we do not use. Entities we do not attack or praise. Rhetorical moves outside scope. Ask directly: "what must this document not do under any circumstances?"

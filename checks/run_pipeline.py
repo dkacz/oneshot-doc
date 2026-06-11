@@ -28,6 +28,8 @@ BUILD_REFERENCE = ASSETS_DIR / "build_reference_docx.py"
 DOCX_POSTPROCESS = ASSETS_DIR / "docx_postprocess.py"
 QA_GATES = SKILL_ROOT / "checks" / "qa_gates.py"
 PYTHON = sys.executable or "python3"
+sys.path.insert(0, str(ASSETS_DIR))
+from palette import get_theme, theme_names
 
 
 class PipelineError(Exception):
@@ -156,21 +158,34 @@ def locate_output(qmd: Path, suffix: str, started_at: float) -> Path:
     raise PipelineError(f"could not locate rendered {suffix} output; recent candidates: {detail}")
 
 
-def ensure_reference_doc(qmd: Path) -> Path:
+def ensure_reference_doc(qmd: Path, theme: str, accent: str | None) -> Path:
     reference = qmd.parent / "formatting" / "reference.docx"
+    marker = qmd.parent / "formatting" / "reference.theme.txt"
+    marker_value = f"{theme}|{accent or ''}"
     should_build = not reference.exists()
     reason = "missing"
     if reference.exists() and reference.stat().st_mtime < BUILD_REFERENCE.stat().st_mtime:
         should_build = True
         reason = "older than build_reference_docx.py"
+    if not marker.exists():
+        should_build = True
+        reason = "theme marker missing"
+    elif marker.read_text(encoding="utf-8").strip() != marker_value:
+        should_build = True
+        reason = "theme marker changed"
 
     if should_build:
+        cmd = [PYTHON, str(BUILD_REFERENCE), rel_to(reference, qmd.parent), "--theme", theme]
+        if accent:
+            cmd.extend(["--accent", accent])
         run_step(
             f"Build DOCX reference ({reason})",
-            [PYTHON, str(BUILD_REFERENCE), rel_to(reference, qmd.parent)],
+            cmd,
             qmd.parent,
             show_stdout=True,
         )
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text(marker_value + "\n", encoding="utf-8")
     else:
         print("\n[Build DOCX reference]")
         print(f"  OK ({rel_to(reference, qmd.parent)} is current)")
@@ -204,7 +219,14 @@ def run_pipeline(args: argparse.Namespace) -> int:
         raise PipelineError("--budget must be a positive integer")
 
     formats = parse_formats(args.formats)
+    try:
+        get_theme(args.theme, args.accent)
+    except ValueError as exc:
+        raise PipelineError(str(exc)) from exc
     postprocess_args = split_extra_args(args.postprocess_args, "--postprocess-args")
+    postprocess_args.extend(["--theme", args.theme])
+    if args.accent:
+        postprocess_args.extend(["--accent", args.accent])
     gates_args = split_extra_args(args.gates_args, "--gates-args")
     outdir = resolve_outdir(args.outdir.expanduser(), qmd.parent)
 
@@ -212,12 +234,13 @@ def run_pipeline(args: argparse.Namespace) -> int:
     print(f"  qmd: {qmd}")
     print(f"  budget: {args.budget}")
     print(f"  formats: {','.join(formats)}")
+    print(f"  theme: {args.theme}|{args.accent or ''}")
     print(f"  outdir: {outdir}")
 
     pdf = render_pdf(qmd)
     docx = None
     if "docx" in formats:
-        reference = ensure_reference_doc(qmd)
+        reference = ensure_reference_doc(qmd, args.theme, args.accent)
         docx = render_docx(qmd, reference)
         run_step(
             "DOCX postprocess",
@@ -267,6 +290,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="Argument string passed through to checks/qa_gates.py after the canonical arguments.",
     )
     parser.add_argument("--outdir", type=Path, default=Path("qa"))
+    parser.add_argument("--theme", default="think-tank", choices=theme_names())
+    parser.add_argument("--accent", help="Override the theme accent with a 6 digit hex colour.")
     return parser.parse_args(argv)
 
 

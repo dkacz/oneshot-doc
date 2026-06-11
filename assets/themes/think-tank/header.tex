@@ -1,6 +1,4 @@
-% oneshot-doc: parameterized lualatex header (scrartcl + Quarto)
-% Replace {{...}} fields with values from the preset and contract, then save
-% as formatting/header.tex in the document directory.
+% oneshot-doc: think-tank lualatex header (scrartcl + Quarto)
 \usepackage[a4paper,{{GEOMETRY_OPTIONS}},headheight=15pt,includeheadfoot]{geometry}
 \usepackage{fontspec}
 \setmainfont{SourceSerif4}[
@@ -32,11 +30,11 @@
 \usepackage{needspace}
 \usepackage{multicol}
 
-\definecolor{WPBlue}{HTML}{253B59}
-\definecolor{WPRule}{HTML}{7D93AD}
-\definecolor{WPGray}{HTML}{4B5563}
-\definecolor{WPLight}{HTML}{EEF3F8}
-\definecolor{WPBrick}{HTML}{A6442C}
+\definecolor{WPBlue}{HTML}{{{PRIMARY}}}
+\definecolor{WPRule}{HTML}{{{RULE}}}
+\definecolor{WPGray}{HTML}{{{GRAY}}}
+\definecolor{WPLight}{HTML}{{{LIGHT}}}
+\definecolor{WPBrick}{HTML}{{{ACCENT}}}
 
 \linespread{ {{LINESPREAD}} }
 \setlength{\parskip}{ {{PARSKIP}} }

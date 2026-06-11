@@ -38,12 +38,22 @@ At the start, locate the family directory. If it exists, read the glossary and e
 
 Run the interview according to `INTERVIEW.md`: rigorous, one question at a time, with a recommendation for every question, and with source confrontation instead of a question whenever the sources already answer it. Write the interview result continuously into `CONTRACT.md` using `CONTRACT-TEMPLATE.md`. The interview ends only when the contract has no "to be settled" fields.
 
-The contract covers at least: document type and preset, main thesis, audience and purpose, language, page budget, canonical numbers with sources, forbidden zones, tone, section structure, figures and their intended purpose, output format (PDF, DOCX, or both), working title, and DOCX postprocess parameters.
+The contract covers at least: document type and preset, visual theme and its parameters, main thesis, audience and purpose, language, page budget, canonical numbers with sources, forbidden zones, tone, section structure, figures and their intended purpose, output format (PDF, DOCX, or both), working title, and DOCX postprocess parameters.
+
+### Visual Themes
+
+The document's look is a contract decision, not an accident of the toolchain. The skill ships named themes, each a fully tested code path covering the LaTeX header, the figure palette, the DOCX reference styles, and the DOCX postprocess colors:
+
+- `think-tank` (default): sans headings, serif body, navy primary with a brick accent, assertive title block with a heavy rule.
+- `academic`: serif headings and body, centered title block framed by thin rules, warm paper tones with a maroon accent.
+- `minimal`: sans throughout, near-black ink, generous whitespace, no decorative rules, teal accent.
+
+The interview recommends a theme based on audience and genre; the operator picks. Two safe parameters may vary within a theme: an accent color override (hex) and the base font size (10-11 pt, set via `fontsize:` in the qmd YAML). There is no free-form styling outside themes: the QA gates guarantee mechanics for any input, but print-quality polish is guaranteed only on these tested paths. All themes use the same two font families, so no theme changes the installation requirements.
 
 ### Phase 2: Production
 
-1. Build figures as separate Python scripts that use `assets/palette.py` for palette, fonts, and helper patterns. Each figure has one purpose from the contract. After building, inspect every PNG for text collisions, clipped labels, and readability at target width.
-2. Write the document as `.qmd` from the preset skeleton (`assets/presets/<type>.md`) with a LaTeX header generated from `assets/header_template.tex` by replacing the double-brace fields. Replace `{{SANS_FONT_DIR}}` and `{{SERIF_FONT_DIR}}` with the values returned by `assets/palette.py` (`font_template_values()` or `font_dir_strings()`). Write under the preset style rules and the family glossary.
+1. Build figures as separate Python scripts that use `assets/palette.py` for palette, fonts, and helper patterns; call `setup_fonts(theme=<contract theme>)` so figure colors match the document theme. Each figure has one purpose from the contract. After building, inspect every PNG for text collisions, clipped labels, and readability at target width.
+2. Write the document as `.qmd` from the preset skeleton (`assets/presets/<type>.md`) with a LaTeX header generated from the contract theme's template `assets/themes/<theme>/header.tex` by replacing the double-brace fields. Take the replacement values (font directories and theme colors) from `assets/palette.py` via `font_template_values(<theme>)`. Write under the preset style rules and the family glossary.
 3. Before Phase 3, run the mandatory self-check for rules 16-17 in `assets/STYLE.md`: read the whole text and remove every document self-reference (metanarration such as "ta notatka", "niniejszy dokument", "this report"), every reference to the production process (contract, production brief, interview, review rounds), and every defensive formulation (arguing with comments, explaining what the document does not contain, or defensively denying forbidden zones). The content speaks about its subject, not about itself.
 4. Maintain `NUMBERS.md` in the document working directory: every number used in the text, its value, unit, and exact source address.
 5. Run every complete production render and gate cycle through the canonical runner. The runner renders PDF, ensures `formatting/reference.docx` for DOCX when needed, renders DOCX, runs `assets/docx_postprocess.py` with the contract parameters, and runs `checks/qa_gates.py` once. Example:
@@ -53,10 +63,13 @@ python3 <skill-dir>/checks/run_pipeline.py \
   --qmd <file>.qmd \
   --budget <page budget> \
   --formats pdf,docx \
+  --theme <theme from contract> \
   --postprocess-args '--geometry "A4,top=20,bottom=20,left=24,right=24" --running-header "<short header from contract>" --footer-page --doc-label "<document kind label>" --boxes-to-tables --keep-with-next' \
   --gates-args '<qa_gates.py extra args, for example --meta-allow "allowed phrase">' \
   --outdir qa
 ```
+
+When the contract sets an accent override, add `--accent <hex>` next to `--theme`. The runner forwards the theme to the DOCX reference builder and the postprocess step, so both formats stay on the same theme without extra flags.
 
 Manual assembly of `quarto render`, `assets/build_reference_docx.py`, `assets/docx_postprocess.py`, and `checks/qa_gates.py` is allowed only to debug one step. Every full cycle uses `checks/run_pipeline.py`.
 6. Put all DOCX layout parameters from the contract into `--postprocess-args`. For the `letter` preset, add `--address-block <address-block.json>` there when the contract requires a sender/recipient block. The JSON may contain `city_date`, `sender_label`, `sender`, `recipient_label`, `recipient`, `recipient_align`, and `columns_twips`.
@@ -132,5 +145,5 @@ The skill leads the operator by the hand. In Phase 1 the interview always goes t
 - `INTERVIEW.md` - rigorous interview protocol
 - `CONTRACT-TEMPLATE.md` - contract template
 - `GLOSSARY-FORMAT.md`, `DECISION-FORMAT.md` - document-family memory
-- `assets/` - LaTeX header, palette, presets, DOCX reference builder, DOCX postprocess module
+- `assets/` - palette and theme registry, per-theme LaTeX headers (`themes/<name>/header.tex`), presets, DOCX reference builder, DOCX postprocess module
 - `checks/qa_gates.py` - programmatic gates

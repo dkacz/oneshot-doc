@@ -5,8 +5,9 @@ Copy this to `CONTRACT.md` in the document working directory and fill it during 
 ```markdown
 # Contract: <working title>
 
-Family: <family slug> | Preset: <brief|raport|notatka|pismo|streszczenie>
+Family: <family slug> | Preset: <brief|report|memo|letter|summary>
 Language: <pl|en> | Format: <pdf|docx|both> | Page budget: <N>
+Theme: <think-tank|academic|minimal> | Accent override: <hex or none> | Base font size: <10-11pt>
 Contract date: <YYYY-MM-DD>
 
 ## Thesis and Purpose
@@ -57,7 +58,7 @@ DOCX geometry: <A4,top=20,bottom=20,left=24,right=24>
 Running header: <text or none>
 Footer PAGE field: <yes/no; optional footer text>
 Document kind label: <label or empty>
-Address block JSON: <path or none, for pismo>
+Address block JSON: <path or none, for letter>
 Keep headings with next paragraph: <yes/no>
 
 ## Edges

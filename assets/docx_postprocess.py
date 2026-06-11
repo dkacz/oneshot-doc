@@ -24,12 +24,26 @@ from docx.oxml.ns import nsdecls, qn
 from docx.shared import Mm, Pt, RGBColor
 
 try:
-    from palette import WPBLUE, WPGRAY, WPLIGHT, WPRULE
+    from palette import get_theme, theme_names
 except ImportError:  # pragma: no cover - only used when copied away from assets/
-    WPBLUE = "#253B59"
-    WPGRAY = "#4B5563"
-    WPLIGHT = "#EEF3F8"
-    WPRULE = "#7D93AD"
+    def theme_names() -> list[str]:
+        return ["think-tank"]
+
+    def get_theme(name: str = "think-tank", accent: str | None = None) -> dict[str, str]:
+        if name != "think-tank":
+            raise ValueError("Unknown theme {!r}. Available themes: think-tank".format(name))
+        theme = {
+            "primary": "#253B59",
+            "rule": "#7D93AD",
+            "gray": "#4B5563",
+            "light": "#EEF3F8",
+            "accent": "#A6442C",
+            "body_family": "serif",
+            "heading_family": "sans",
+        }
+        if accent is not None:
+            theme["accent"] = accent if accent.startswith("#") else "#" + accent
+        return theme
 
 SANS = "Source Sans 3"
 SERIF = "Source Serif 4"
@@ -38,24 +52,28 @@ DEFAULT_ADDRESS_COLS_TWIPS = (5200, 3870)
 DEFAULT_MARGINS_MM = {"top": 20.0, "bottom": 20.0, "left": 24.0, "right": 24.0}
 BOX_STYLES = {"KeyBox", "MethodBox"}
 LIST_LIKE_STYLES = {"Compact", "List Paragraph", "List Bullet", "List Number"}
-BOX_CONFIG = {
-    "KeyBox": {
-        "fill": WPLIGHT.lstrip("#"),
-        "accent": WPBLUE.lstrip("#"),
-        "border": WPLIGHT.lstrip("#"),
-        "left_sz": "20",
-        "border_sz": "2",
-        "margins": {"top": "120", "left": "190", "bottom": "120", "right": "170"},
-    },
-    "MethodBox": {
-        "fill": "FFFFFF",
-        "accent": WPRULE.lstrip("#"),
-        "border": WPRULE.lstrip("#"),
-        "left_sz": "8",
-        "border_sz": "4",
-        "margins": {"top": "100", "left": "180", "bottom": "100", "right": "170"},
-    },
-}
+
+
+def theme_box_config(theme_name: str, theme: dict[str, str]) -> dict[str, dict[str, Any]]:
+    key_accent = theme["primary"] if theme_name == "think-tank" else theme["accent"]
+    return {
+        "KeyBox": {
+            "fill": theme["light"].lstrip("#"),
+            "accent": key_accent.lstrip("#"),
+            "border": theme["light"].lstrip("#"),
+            "left_sz": "20",
+            "border_sz": "2",
+            "margins": {"top": "120", "left": "190", "bottom": "120", "right": "170"},
+        },
+        "MethodBox": {
+            "fill": "FFFFFF",
+            "accent": theme["rule"].lstrip("#"),
+            "border": theme["rule"].lstrip("#"),
+            "left_sz": "8",
+            "border_sz": "4",
+            "margins": {"top": "100", "left": "180", "bottom": "100", "right": "170"},
+        },
+    }
 
 
 def rgb(hex_color: str) -> RGBColor:
@@ -130,7 +148,7 @@ def add_page_field(paragraph):
     return run
 
 
-def set_bottom_border(paragraph, color: str = "7D93AD") -> None:
+def set_bottom_border(paragraph, color: str, size: str = "4") -> None:
     ppr = paragraph._p.get_or_add_pPr()
     old = ppr.find(qn("w:pBdr"))
     if old is not None:
@@ -138,7 +156,7 @@ def set_bottom_border(paragraph, color: str = "7D93AD") -> None:
     ppr.append(
         parse_xml(
             f"<w:pBdr {nsdecls('w')}>"
-            f'<w:bottom w:val="single" w:sz="4" w:space="4" w:color="{color}"/>'
+            f'<w:bottom w:val="single" w:sz="{size}" w:space="4" w:color="{color}"/>'
             "</w:pBdr>"
         )
     )
@@ -178,7 +196,7 @@ def apply_geometry(doc, geometry: str) -> None:
         section.footer_distance = Mm(margins.get("footer", 10.0))
 
 
-def set_running_header(doc, text: str) -> None:
+def set_running_header(doc, text: str, theme_name: str, theme: dict[str, str]) -> None:
     for section in doc.sections:
         section.different_first_page_header_footer = True
 
@@ -191,11 +209,11 @@ def set_running_header(doc, text: str) -> None:
         clear_paragraph(paragraph)
         paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
         run = paragraph.add_run(text)
-        set_run_font(run, SANS, 9, rgb(WPGRAY))
-        set_bottom_border(paragraph)
+        set_run_font(run, SANS, 9, rgb(theme["gray"]))
+        set_bottom_border(paragraph, theme["rule"].lstrip("#"), "2" if theme_name == "minimal" else "4")
 
 
-def set_page_footer(doc, text: str | None) -> None:
+def set_page_footer(doc, text: str | None, theme: dict[str, str]) -> None:
     for section in doc.sections:
         section.different_first_page_header_footer = True
         body_width = section.page_width - section.left_margin - section.right_margin
@@ -207,15 +225,15 @@ def set_page_footer(doc, text: str | None) -> None:
             if text:
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 paragraph.paragraph_format.tab_stops.add_tab_stop(body_width, WD_TAB_ALIGNMENT.RIGHT)
-                set_run_font(paragraph.add_run(text), SANS, 9, rgb(WPGRAY))
+                set_run_font(paragraph.add_run(text), SANS, 9, rgb(theme["gray"]))
                 paragraph.add_run("\t")
             else:
                 paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
             page_run = add_page_field(paragraph)
-            set_run_font(page_run, SANS, 9, rgb(WPGRAY))
+            set_run_font(page_run, SANS, 9, rgb(theme["gray"]))
 
 
-def ensure_doc_kind_style(doc):
+def ensure_doc_kind_style(doc, theme_name: str, theme: dict[str, str]):
     styles = doc.styles
     try:
         style = styles["DocKind"]
@@ -223,17 +241,21 @@ def ensure_doc_kind_style(doc):
         style = styles.add_style("DocKind", WD_STYLE_TYPE.PARAGRAPH)
     style.base_style = styles["Normal"]
     style.quick_style = True
-    set_style_font(style, SANS, 8.5, rgb(WPGRAY))
+    set_style_font(style, SANS, 8.5, rgb(theme["gray"]))
     style.font.small_caps = True
     style.paragraph_format.space_before = Pt(0)
     style.paragraph_format.space_after = Pt(4)
+    # The academic theme centers the kind label in the PDF title block.
+    style.paragraph_format.alignment = (
+        WD_ALIGN_PARAGRAPH.CENTER if theme_name == "academic" else WD_ALIGN_PARAGRAPH.LEFT
+    )
     return style
 
 
-def add_doc_label(doc, label: str) -> None:
+def add_doc_label(doc, label: str, theme_name: str, theme: dict[str, str]) -> None:
     if not label.strip():
         return
-    style = ensure_doc_kind_style(doc)
+    style = ensure_doc_kind_style(doc, theme_name, theme)
     paragraphs = list(doc.paragraphs)
     title = next((p for p in paragraphs if p.style.name == "Title"), None)
     if title is None:
@@ -252,7 +274,7 @@ def add_doc_label(doc, label: str) -> None:
     paragraph = title.insert_paragraph_before(label)
     paragraph.style = style
     for run in paragraph.runs:
-        set_run_font(run, SANS, 8.5, rgb(WPGRAY))
+        set_run_font(run, SANS, 8.5, rgb(theme["gray"]))
         run.font.small_caps = True
 
 
@@ -467,12 +489,13 @@ def apply_box_table_geometry(table, cfg: dict[str, Any]) -> None:
     clear_cell_paragraphs(cell)
 
 
-def convert_boxes_to_tables(doc) -> int:
+def convert_boxes_to_tables(doc, theme_name: str, theme: dict[str, str]) -> int:
     demote_box_styles_to_markers(doc)
+    config = theme_box_config(theme_name, theme)
     converted = 0
     for box_style, paragraphs in find_box_groups(doc):
         table = insert_one_cell_table_before(doc, paragraphs[0])
-        apply_box_table_geometry(table, BOX_CONFIG[box_style])
+        apply_box_table_geometry(table, config[box_style])
         cell = table.cell(0, 0)
         for idx, paragraph in enumerate(paragraphs):
             remove_direct_paragraph_box_format(paragraph)
@@ -679,6 +702,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Repack KeyBox/MethodBox paragraph groups as one-cell tables with reliable Word print frames.",
     )
+    parser.add_argument("--theme", default="think-tank", choices=theme_names())
+    parser.add_argument("--accent", help="Override the theme accent with a 6 digit hex colour.")
     return parser.parse_args(argv)
 
 
@@ -687,20 +712,21 @@ def main(argv: list[str] | None = None) -> int:
     if not args.docx.exists():
         raise FileNotFoundError(args.docx)
 
+    theme = get_theme(args.theme, args.accent)
     doc = Document(str(args.docx))
     apply_geometry(doc, args.geometry)
     shrink_verbatim(doc)
     if args.doc_label:
-        add_doc_label(doc, args.doc_label)
+        add_doc_label(doc, args.doc_label, args.theme, theme)
     if args.running_header:
-        set_running_header(doc, args.running_header)
+        set_running_header(doc, args.running_header, args.theme, theme)
     if args.footer_page is not None:
-        set_page_footer(doc, args.footer_page)
+        set_page_footer(doc, args.footer_page, theme)
     if args.address_block is not None:
         apply_address_block(doc, args.address_block)
     converted_boxes = 0
     if args.boxes_to_tables:
-        converted_boxes = convert_boxes_to_tables(doc)
+        converted_boxes = convert_boxes_to_tables(doc, args.theme, theme)
     if args.keep_with_next:
         keep_headings_with_next(doc)
 
