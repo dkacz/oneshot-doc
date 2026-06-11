@@ -4,7 +4,7 @@ The interview must produce a contract from which the document can be written wit
 
 ## Conduct Rules
 
-1. **One question at a time** (in harness mode: rounds of three to six questions). Ask the next question only after the previous answer, because each answer opens and closes branches.
+1. **One question at a time.** Ask the next question only after the previous answer, because each answer opens and closes branches.
 2. **Every question includes a recommendation.** For each question, give your recommended answer with one sentence of reasoning. The operator can accept the recommendation with one word.
 3. **Sources instead of questions.** If the answer can be established from the specified sources, check the sources and do not ask. Instead of "what is the value of X", say "source Y gives X as Z, so I am putting it into the contract".
 4. **Confront numbers and facts with sources.** When the operator gives a number or fact, check it against the sources before recording it. Point out any mismatch immediately, including what the source says and where.

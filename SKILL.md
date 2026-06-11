@@ -11,7 +11,7 @@ The document is written in the language set by the contract, Polish or English. 
 
 ## Hard Rules (Always Apply)
 
-0. **The skill is self-contained.** It works in any working directory, including an external repository with no helper files. Load every resource (style rules, presets, palette, header and DOCX templates, gates) only from this skill directory (`assets/`, `checks/`, and the protocol files beside `SKILL.md`), never from the project. If the project has files with similar names (`STYLE.md`, `RUBRIC.md`, presets), ignore them; the skill resources are authoritative, and project requirements enter the document only through the contract. In an external repository, leave no traces outside the document working directory chosen at the start; the `.oneshot/` family memory also lives there.
+0. **The skill is self-contained.** It works in any working directory, including an external repository with no helper files. Load every resource (style rules, presets, palette, header and DOCX templates, gates) only from this skill directory (`assets/`, `checks/`, and the protocol files beside `SKILL.md`), never from the project. If the project has files with similar names (`STYLE.md`, presets), ignore them; the skill resources are authoritative, and project requirements enter the document only through the contract. In an external repository, leave no traces outside the document working directory chosen at the start; the `.oneshot/` family memory also lives there.
 
 1. **No fabrication.** Every number, fact, and claim in the document must be supported by the sources listed in the contract. Every number goes into `NUMBERS.md` with an exact source address (file, page, or line). If a fact is missing from the sources, it is missing from the document; raise the gap in the interview or mark it explicitly, never fill it with your own knowledge.
 2. **No long dashes.** The characters `—` and `–` do not appear in the document source or in the rendered file. Write ranges with a normal hyphen (2028-2030). This applies in English as well.
@@ -59,7 +59,7 @@ python3 <skill-dir>/checks/run_pipeline.py \
 ```
 
 Manual assembly of `quarto render`, `assets/build_reference_docx.py`, `assets/docx_postprocess.py`, and `checks/qa_gates.py` is allowed only to debug one step. Every full cycle uses `checks/run_pipeline.py`.
-6. Put all DOCX layout parameters from the contract into `--postprocess-args`. For the `pismo` preset, add `--address-block <address-block.json>` there when the contract requires a sender/recipient block. The JSON may contain `city_date`, `sender_label`, `sender`, `recipient_label`, `recipient`, `recipient_align`, and `columns_twips`.
+6. Put all DOCX layout parameters from the contract into `--postprocess-args`. For the `letter` preset, add `--address-block <address-block.json>` there when the contract requires a sender/recipient block. The JSON may contain `city_date`, `sender_label`, `sender`, `recipient_label`, `recipient`, `recipient_align`, and `columns_twips`.
 7. If the document uses `KeyBox` or `MethodBox`, the DOCX source must mark the box with `custom-style="KeyBox"` or `custom-style="MethodBox"` and `--postprocess-args` must include `--boxes-to-tables`. Do not emulate boxes in DOCX with block quotes, paragraph borders, manual rules, or document-specific scripts.
 8. After the first runner cycle of both formats, align section page starts to the PDF by inserting explicit shared page breaks in the source. Do not leave critical section breaks to the LaTeX and Word automatic layout engines. A section heading must not remain at the bottom of a page; `--keep-with-next` helps, but section page breaks are explicit.
 
@@ -108,11 +108,11 @@ Write each critic's report to `qa/critics/` (`substantive_report.md`, `style_rep
 
 Delivery precondition (hard): `qa/critics/` contains all three non-empty critic reports and no blocking finding remains unaddressed. If any report is missing, Phase 4 has not happened and delivery is forbidden; skipping the critics is a protocol violation even when every gate passes.
 
-Show the operator: file paths (PDF and DOCX), page counts, three sentences on what the document does, a short contract-compliance report (thesis, forbidden zones, numbers, page budget), and a one-line critics summary (findings per critic, what was fixed). Update the family glossary and decision register with interview decisions that pass the triple test in `DECISION-FORMAT.md`. Archive the contract in `contracts/`.
+Show the operator: file paths (PDF and DOCX), page counts, three sentences on what the document does, a short contract-compliance report (thesis, forbidden zones, numbers, page budget), and a one-line critics summary (findings per critic, what was fixed). Then collect the operator's verdict with a few guiding questions, one dimension at a time, so feedback lands on actionable areas: are you satisfied with the substance (claims, numbers, emphasis)? with the language and tone? with the look of the PDF and the DOCX (layout, figures, boxes)? is anything missing or unnecessary? The operator answers in plain words; they are never asked to score, audit, or apply any rubric. If the operator requests changes, implement them as a new revision through the full runner cycle (Phases 2-4 as needed) and deliver again. When the operator is satisfied, update the family glossary and decision register with interview decisions that pass the triple test in `DECISION-FORMAT.md`, and archive the contract in `contracts/`.
 
-## Harness Mode (Tests and Automation)
+## Roles
 
-When the skill runs under a test harness (the request includes "TRYB HARNESS" and names an operator proxy), the interview goes to the proxy instead of the operator. Questions may be grouped into rounds of three to six to reduce exchanges, but each round keeps recommendations and source confrontation. The rest of the workflow is identical; no gate is relaxed.
+The skill leads the operator by the hand. In Phase 1 the interview always goes to the human operator, one question at a time, each with a recommendation, so the operator decides without having to design anything. After delivery the operator is not asked to score or audit the document; they simply say whether they are satisfied and what to change. The skill never assigns itself, a critic, or another model the judging role; critics are internal reviewers whose findings the producer must address before delivery, not evaluators of record.
 
 ## Document Working Directory
 
@@ -132,6 +132,5 @@ When the skill runs under a test harness (the request includes "TRYB HARNESS" an
 - `INTERVIEW.md` - rigorous interview protocol
 - `CONTRACT-TEMPLATE.md` - contract template
 - `GLOSSARY-FORMAT.md`, `DECISION-FORMAT.md` - document-family memory
-- `RUBRIC.md` - evaluation rubric, also used by the test judge
 - `assets/` - LaTeX header, palette, presets, DOCX reference builder, DOCX postprocess module
 - `checks/qa_gates.py` - programmatic gates

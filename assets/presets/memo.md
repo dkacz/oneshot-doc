@@ -1,4 +1,4 @@
-# Preset: notatka (decision memo, internal memo)
+# Preset: memo (decision memo, internal memo)
 
 ## Header Parameters
 
@@ -9,7 +9,7 @@ LINESPREAD       = 1.0
 PARSKIP          = 0.3em
 SECNUMDEPTH      = 0
 TITLE_SIZE       = LARGE
-KIND_LABEL       = Notatka  (or "Notatka decyzyjna")
+KIND_LABEL       = Memo  (or the contract label, in the document language)
 ```
 
 Default page budget: 2. A decision maker reads it in two minutes; anything beyond that belongs in an appendix.
@@ -32,3 +32,8 @@ DOCX rule: the recommendation `KeyBox` must be a Pandoc `custom-style` block and
 - An options table is allowed instead of prose options if the contract prefers it (columns: option, cost, risk, recommendation).
 - Dates are absolute (15 July 2026, not "in two weeks"); responsibilities are named if the contract knows them.
 - Do not refer to materials the decision maker does not have at hand unless you summarize them in one sentence at the point of reference.
+
+## Polish Addendum
+
+- Typical Polish kind labels: "Notatka" or "Notatka decyzyjna".
+- Dates in full Polish form (15 lipca 2026 r.), decimal comma in numbers.

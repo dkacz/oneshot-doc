@@ -1,4 +1,4 @@
-# Preset: raport (analytical report, working paper, longer analysis)
+# Preset: report (analytical report, working paper, longer analysis)
 
 ## Header Parameters
 
@@ -9,10 +9,10 @@ LINESPREAD       = 1.04
 PARSKIP          = 0.5em
 SECNUMDEPTH      = 1
 TITLE_SIZE       = Huge
-KIND_LABEL       = Raport  (or the contract label)
+KIND_LABEL       = Report  (or the contract label, in the document language)
 ```
 
-Default page budget: 8-16 (set by the contract). YAML as in `brief`; for documents above 10 pages add `toc: true`, `toc-depth: 2`, and a Polish `toc-title:` when the document language is Polish.
+Default page budget: 8-16 (set by the contract). YAML as in `brief`; for documents above 10 pages add `toc: true` and `toc-depth: 2`.
 
 ## Skeleton
 
@@ -32,3 +32,8 @@ DOCX rule: `KeyBox` and `MethodBox` must be Pandoc `custom-style` blocks and mus
 - A section must not start with a figure or table; first comes a leading sentence.
 - Running header: title shortened to at most 60 characters.
 - Repeatability: every number in the report has an address in `NUMBERS.md`; result tables refer to source files in captions if the contract wants this.
+
+## Polish Addendum
+
+- Typical kind label: "Raport".
+- For documents above 10 pages set a Polish `toc-title:` (e.g. "Spis treści").

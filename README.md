@@ -2,7 +2,7 @@
 
 `oneshot-doc` is a Claude Code skill for one-shot production of polished PDF and DOCX documents from supplied source material. It uses an internal interview, contract, gates, and critics loop so the operator receives a send-ready document rather than an exposed draft.
 
-The skill is for Claude Code users who want reproducible production of briefs, reports, decision memos, letters, and analytical summaries. The skill protocol is in English. Output documents can be written in Polish or English, depending on the contract.
+The skill is for Claude Code users who want reproducible production of briefs, reports, decision memos, letters, and analytical summaries (presets: brief, report, memo, letter, summary). The operator is led by the hand: the interview asks one question at a time with a recommendation, and after delivery the operator only says whether they are satisfied and what to change. The skill protocol is in English. Output documents can be written in Polish or English, depending on the contract.
 
 ## Installation
 
@@ -57,7 +57,7 @@ Phase 3 runs programmatic gates for page budget, PDF/DOCX parity, dashes, metana
 
 Phase 4 runs three independent critics: substantive, style, and visual. Blocking findings return to Phase 3.
 
-Phase 5 delivers file paths, page counts, a short description, a contract-compliance report, and updates the family glossary and decision register.
+Phase 5 delivers file paths, page counts, a short description, and a contract-compliance report, then collects the operator's verdict with guiding questions (substance, language, look, anything missing). Operator-requested changes go through the full cycle again; the operator never scores or applies a rubric. Once the operator is satisfied, the family glossary and decision register are updated.
 
 ## Hard Rules
 

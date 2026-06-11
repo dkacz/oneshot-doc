@@ -19,7 +19,13 @@ Rules apply in both languages unless marked otherwise. The style critic enforces
 
 17. **No defensive prose.** The document does not argue with comments, pre-empt reviewer objections, or explain itself out of forbidden zones or omissions ("dokument celowo pomija...", "świadomie nie omawiamy...", "despite possible objections...", "this is not a weakness because..."). After a comment round, improve the content; do not add responses to comments into the document. Genre-appropriate explanation of method limits, for example caveats in a research method note or variant costs in a decision memo, is allowed when it speaks about the subject rather than defending the document before the reader.
 
-## Polish
+## English
+
+13. **No compound modifier chains.** Rephrase instead of "category-specific market-anchored haircut"; prefer "haircut anchored to market categories".
+14. **Plain verbs over nominalisations.** "We estimate", not "estimation was performed".
+15. **One idea per sentence in abstracts and lead boxes.**
+
+## Appendix: Polish-Language Documents
 
 For Polish-language documents:
 
@@ -27,9 +33,3 @@ For Polish-language documents:
 10. **Use full Polish diacritics**; no "moze", "wazne".
 11. **Newly coined mechanism names** are introduced with "tak zwany" or a definition, not as if they were common concepts.
 12. **Use personal forms instead of impersonal chains**: "badanie pokazuje", not "zostało pokazane, że".
-
-## English
-
-13. **No compound modifier chains.** Rephrase instead of "category-specific market-anchored haircut"; prefer "haircut anchored to market categories".
-14. **Plain verbs over nominalisations.** "We estimate", not "estimation was performed".
-15. **One idea per sentence in abstracts and lead boxes.**
