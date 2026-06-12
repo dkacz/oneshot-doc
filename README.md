@@ -32,7 +32,7 @@ git clone https://github.com/dkacz/oneshot-doc ~/.claude/skills/oneshot-doc
 
 Then start Claude Code normally. The skill activates when the operator asks for a finished document from source materials.
 
-Supported platforms: macOS and Linux. On Windows use WSL with Ubuntu and follow the Debian/Ubuntu steps inside WSL; native Windows is untested because the pipeline needs `soffice` and Poppler tools on PATH.
+Supported platforms: macOS, Linux, and Windows. All three are exercised in CI: the GitHub Actions workflow installs the full toolchain on `windows-latest` and `ubuntu-latest` and runs the gated sample render on every push. On Windows the skill's tool resolver finds LibreOffice and TinyTeX in their default install locations even when they are not on PATH; WSL with Ubuntu also works if you prefer the Linux route.
 
 ## Dependencies
 
@@ -71,6 +71,19 @@ Debian/Ubuntu:
 sudo apt install pandoc poppler-utils libreoffice texlive-xetex texlive-luatex
 sudo apt install python3-docx python3-matplotlib python3-pypdf
 ```
+
+Windows (PowerShell):
+
+```powershell
+winget install Quarto.Quarto JohnMacFarlane.Pandoc TheDocumentFoundation.LibreOffice
+quarto install tinytex
+# Poppler: download the latest Release zip from
+# https://github.com/oschwartz10612/poppler-windows/releases
+# and add its Library\bin directory to PATH
+python -m pip install python-docx matplotlib pypdf
+```
+
+Fonts on Windows go to `%USERPROFILE%\.fonts\source-sans` and `%USERPROFILE%\.fonts\source-serif` (or set `ONESHOT_FONTS_DIR`). LibreOffice and TinyTeX do not need to be on PATH; the tool resolver checks their default install locations.
 
 Note on PEP 668: recent Homebrew and Debian/Ubuntu Pythons are externally managed, so a bare `pip3 install` fails with `externally-managed-environment`. On Debian/Ubuntu prefer the `apt` packages above. On macOS either run `pip3 install --break-system-packages python-docx matplotlib pypdf`, or create a virtual environment (`python3 -m venv ~/.venvs/oneshot-doc`) and make sure the skill's Python scripts run with that environment's interpreter.
 

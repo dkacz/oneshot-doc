@@ -39,7 +39,14 @@ Debian/Ubuntu:
 sudo apt install pandoc poppler-utils libreoffice texlive-xetex texlive-luatex
 ```
 
-Windows: native Windows is not a tested platform for this skill (it relies on `soffice`, Poppler tools, and a Unix-style toolchain on PATH). Use WSL with Ubuntu and follow the Debian/Ubuntu steps inside WSL, including running Claude Code from WSL.
+Windows (PowerShell; the toolchain is exercised in this repo's CI on `windows-latest`):
+
+```powershell
+winget install Quarto.Quarto JohnMacFarlane.Pandoc TheDocumentFoundation.LibreOffice
+quarto install tinytex
+```
+
+Poppler on Windows: download the latest `Release-*.zip` from https://github.com/oschwartz10612/poppler-windows/releases, extract it, and add its `Library\bin` directory to PATH. LibreOffice and TinyTeX do not need to be on PATH; the skill's tool resolver checks their default install locations. WSL with Ubuntu remains a valid alternative (follow the Debian/Ubuntu steps inside WSL).
 
 ## 4. Install missing Python packages
 
