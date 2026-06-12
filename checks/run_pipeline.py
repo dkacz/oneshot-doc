@@ -21,6 +21,8 @@ import sys
 import time
 from pathlib import Path
 
+from toolpaths import resolve_tool
+
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 ASSETS_DIR = SKILL_ROOT / "assets"
@@ -113,7 +115,14 @@ def run_step(
     print(f"\n[{label}]")
     print(f"  $ {shell_join(cmd)}")
     try:
-        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        result = subprocess.run(
+            cmd,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
     except FileNotFoundError as exc:
         raise PipelineError(f"command not found: {cmd[0]}") from exc
 
@@ -194,12 +203,12 @@ def ensure_reference_doc(qmd: Path, theme: str, accent: str | None) -> Path:
 
 def render_pdf(qmd: Path) -> Path:
     started = time.time()
-    run_step("Render PDF", ["quarto", "render", qmd.name, "--to", "pdf"], qmd.parent)
+    run_step("Render PDF", resolve_tool("quarto") + ["render", qmd.name, "--to", "pdf"], qmd.parent)
     return locate_output(qmd, ".pdf", started)
 
 
 def render_docx(qmd: Path, reference: Path) -> Path:
-    cmd = ["quarto", "render", qmd.name, "--to", "docx"]
+    cmd = resolve_tool("quarto") + ["render", qmd.name, "--to", "docx"]
     if has_reference_doc(qmd):
         print("\n[DOCX reference binding]")
         print("  OK (qmd YAML already declares reference-doc; runner will not override it)")

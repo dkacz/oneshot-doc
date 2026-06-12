@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
-import os
 from pathlib import Path
-import shutil
 import sys
-from typing import Iterable
 
+from toolpaths import resolved_tool_path
+
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS_DIR = ROOT / "assets"
@@ -26,51 +30,15 @@ class CheckResult:
     def status(self) -> str:
         return "OK" if self.ok else "MISSING"
 
-
-def extra_tool_dirs() -> Iterable[Path]:
-    home = Path.home()
-    tex_roots = [
-        home / "Library" / "TinyTeX" / "bin",
-        home / ".TinyTeX" / "bin",
-        home / "TinyTeX" / "bin",
-    ]
-    for tex_root in tex_roots:
-        if tex_root.is_dir():
-            yield tex_root
-            for child in tex_root.iterdir():
-                if child.is_dir():
-                    yield child
-
-    for path in (
-        Path("/Library/TeX/texbin"),
-        Path("/Applications/LibreOffice.app/Contents/MacOS"),
-        Path("/Applications/quarto/bin"),
-    ):
-        if path.is_dir():
-            yield path
-
-
-def find_executable(name: str) -> str | None:
-    found = shutil.which(name)
-    if found:
-        return found
-
-    for directory in extra_tool_dirs():
-        candidate = directory / name
-        if candidate.is_file() and os.access(candidate, os.X_OK):
-            return str(candidate)
-    return None
-
-
 def check_tool(name: str) -> CheckResult:
-    found = find_executable(name)
+    found = resolved_tool_path(name)
     return CheckResult(name, found is not None, found or "not found")
 
 
 def check_latex_engine() -> CheckResult:
     engines = []
     for name in ("xelatex", "lualatex"):
-        found = find_executable(name)
+        found = resolved_tool_path(name)
         if found:
             engines.append(f"{name}: {found}")
     return CheckResult(
@@ -137,6 +105,14 @@ def print_install_hints(results: list[CheckResult]) -> None:
         "Install missing system tools on Debian/Ubuntu: install Quarto from the .deb at "
         "https://quarto.org/docs/get-started/; sudo apt install pandoc poppler-utils "
         "libreoffice texlive-xetex texlive-luatex"
+    )
+    print(
+        "Install missing system tools on Windows: winget install Quarto.Quarto "
+        "JohnMacFarlane.Pandoc TheDocumentFoundation.LibreOffice; quarto install tinytex; "
+        "Poppler from https://github.com/oschwartz10612/poppler-windows (add bin\\ to PATH); "
+        "python -m pip install python-docx matplotlib pypdf; install fonts to "
+        "%USERPROFILE%\\.fonts\\source-sans and %USERPROFILE%\\.fonts\\source-serif, "
+        "or set ONESHOT_FONTS_DIR."
     )
     print("Install missing Python packages: python3 -m pip install python-docx matplotlib pypdf")
     print(

@@ -123,7 +123,7 @@ def _has_family(directory: Path, family: str) -> bool:
 
 
 def _fontspec_dir(path: Path) -> str:
-    value = str(path.expanduser().resolve())
+    value = path.expanduser().resolve().as_posix()
     return value if value.endswith("/") else value + "/"
 
 

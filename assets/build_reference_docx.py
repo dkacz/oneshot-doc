@@ -9,8 +9,13 @@ The output is passed to quarto/pandoc via `reference-doc:` in the qmd YAML.
 """
 import argparse
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
+
+CHECKS_DIR = Path(__file__).resolve().parents[1] / "checks"
+sys.path.insert(0, str(CHECKS_DIR))
+from toolpaths import resolve_tool
 
 from docx import Document
 from docx.enum.style import WD_STYLE_TYPE
@@ -247,7 +252,7 @@ def main(out_path: str, theme_name: str = "think-tank", accent: str | None = Non
     with tempfile.TemporaryDirectory() as td:
         base = Path(td) / "base.docx"
         data = subprocess.run(
-            ["pandoc", "--print-default-data-file", "reference.docx"],
+            resolve_tool("pandoc") + ["--print-default-data-file", "reference.docx"],
             check=True,
             capture_output=True,
         ).stdout

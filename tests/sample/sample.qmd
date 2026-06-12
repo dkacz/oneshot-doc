@@ -1,0 +1,85 @@
+---
+title: "Theme Layer Check"
+subtitle: "Shared mechanics across visual systems"
+author: "oneshot-doc QA"
+date: "June 2026"
+lang: en
+format:
+  pdf:
+    documentclass: scrartcl
+    fontsize: 10pt
+    pdf-engine: lualatex
+    fig-pos: "H"
+    colorlinks: true
+    include-in-header: formatting/header.tex
+  docx:
+    reference-doc: formatting/reference.docx
+---
+
+```{=latex}
+\begin{KeyBox}
+```
+
+::: {custom-style="KeyBox"}
+**At a glance.** A **theme** is a named set of colors, font roles, and title composition rules. The rendering mechanics stay fixed across PDF and DOCX: the same reference document, table based callouts, page breaks, and quality gates.
+
+- The baseline readiness value is 42 percent.
+- The target readiness value is 57 percent.
+- The stretch readiness value is 63 percent.
+:::
+
+```{=latex}
+\end{KeyBox}
+```
+
+# Stable mechanics make visual choice testable
+
+Visual variation is useful only when it does not change the production contract. A theme can change the face of a title page, the role of Source Sans 3 and Source Serif 4, and the accent color used in callouts. It should not change how the pipeline builds DOCX frames, applies explicit page breaks, or compares PDF with DOCX output.
+
+The operational check below uses synthetic readiness values. The baseline is 42 percent, the target is 57 percent, and the stretch case is 63 percent. The gap from baseline to target is 15 percentage points, while the gap from target to stretch is 6 percentage points. Those values are repeated in the table and figure so the number gate can verify consistency.
+
+| Path | Readiness | Change from baseline |
+|---|---:|---:|
+| Baseline | 42 percent | 0 percentage points |
+| Target | 57 percent | 15 percentage points |
+| Stretch | 63 percent | 21 percentage points |
+
+: Synthetic readiness table used to exercise booktabs rendering.
+
+The table covers the smallest useful data surface: one baseline, one expected path, and one stretch path. The figure repeats the same values with a lighter visual load, which helps expose whether each theme keeps labels legible without touching the shared production mechanics (OECD 2024).
+
+::: {.content-visible when-format="pdf"}
+```{=latex}
+\clearpage
+```
+:::
+
+::: {.content-visible when-format="docx"}
+```{=openxml}
+<w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:r><w:br w:type="page"/></w:r></w:p>
+```
+:::
+
+# The second page keeps parity pressure visible
+
+The second page starts after an explicit dual format page break. That placement gives the parity gate a clear signature for page two in both renderers. The running header and page footer are applied after DOCX rendering, so their colors and rules come from the selected theme rather than from copied constants.
+
+![Readiness values in percent for the baseline, target, and stretch paths.](figures/make_figure.png){width=74% fig-pos="H"}
+
+```{=latex}
+\begin{MethodBox}
+```
+
+::: {custom-style="MethodBox"}
+**Method note.** The numbers are synthetic test values. The figure is generated with `palette.setup_fonts(theme=THEME)` and the same Source font families required by the production skill. The table, figure, and prose repeat 42 percent, 57 percent, 63 percent, 15 percentage points, 6 percentage points, and 21 percentage points on purpose.
+:::
+
+```{=latex}
+\end{MethodBox}
+```
+
+# References
+
+::: {custom-style="Bibliography"}
+OECD (2024). *Public sector design systems and service delivery quality.* OECD Publishing.
+:::

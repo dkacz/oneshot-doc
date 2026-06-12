@@ -30,10 +30,17 @@ from collections import Counter
 import json
 import re
 import shutil
-import subprocess
 import sys
 import unicodedata
 from pathlib import Path
+
+from toolpaths import resolved_tool_path, run_tool
+
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
 DASHES = {"—": "em-dash", "–": "en-dash"}
 NUM_CONTEXT = re.compile(
@@ -89,12 +96,16 @@ SKILL_ROOT = Path(__file__).resolve().parents[1]
 ASSETS_DIR = SKILL_ROOT / "assets"
 
 
-def run(cmd, **kw):
-    return subprocess.run(cmd, capture_output=True, text=True, **kw)
+def run_resolved(name: str, args: list[str], **kw):
+    kw.setdefault("capture_output", True)
+    kw.setdefault("text", True)
+    kw.setdefault("encoding", "utf-8")
+    kw.setdefault("errors", "replace")
+    return run_tool(name, args, **kw)
 
 
 def pdf_text(pdf: Path) -> str:
-    r = run(["pdftotext", "-layout", str(pdf), "-"])
+    r = run_resolved("pdftotext", ["-layout", str(pdf), "-"])
     return r.stdout
 
 
@@ -107,7 +118,7 @@ def pdf_pages(pdf: Path) -> int:
 def pdf_page_texts(pdf: Path) -> list[str]:
     pages = []
     for page_no in range(1, pdf_pages(pdf) + 1):
-        r = run(["pdftotext", "-f", str(page_no), "-l", str(page_no), "-layout", str(pdf), "-"])
+        r = run_resolved("pdftotext", ["-f", str(page_no), "-l", str(page_no), "-layout", str(pdf), "-"])
         pages.append(r.stdout)
     return pages
 
@@ -220,13 +231,13 @@ def convert_docx_to_pdf(docx: Path, outdir: Path) -> tuple[Path | None, str]:
     if preview_dir.exists():
         shutil.rmtree(preview_dir)
     preview_dir.mkdir(parents=True, exist_ok=True)
-    if shutil.which("soffice") is None:
+    if resolved_tool_path("soffice") is None:
         return None, "soffice not found"
     profile_dir = preview_dir / "lo_profile"
     profile_dir.mkdir(parents=True, exist_ok=True)
-    r = run(
+    r = run_resolved(
+        "soffice",
         [
-            "soffice",
             "--headless",
             "--nologo",
             "--nofirststartwizard",
@@ -236,7 +247,7 @@ def convert_docx_to_pdf(docx: Path, outdir: Path) -> tuple[Path | None, str]:
             "--outdir",
             str(preview_dir),
             str(docx),
-        ]
+        ],
     )
     expected = preview_dir / (docx.stem + ".pdf")
     if expected.exists():
@@ -334,7 +345,7 @@ def bib_gate(qmd_text: str):
 
 
 def fonts_gate(pdf: Path):
-    r = run(["pdffonts", str(pdf)])
+    r = run_resolved("pdffonts", [str(pdf)])
     bad = []
     for line in r.stdout.splitlines()[2:]:
         cols = line.split()
@@ -528,7 +539,7 @@ def main():
     if pages_dir.exists():
         shutil.rmtree(pages_dir)
     pages_dir.mkdir(parents=True)
-    run(["pdftoppm", "-png", "-r", "110", str(a.pdf), str(pages_dir / "page")])
+    run_resolved("pdftoppm", ["-png", "-r", "110", str(a.pdf), str(pages_dir / "page")])
     shots = sorted(pages_dir.glob("page-*.png"))
     gates["pageshots"] = {
         "status": "pass" if shots else "fail",
@@ -542,7 +553,7 @@ def main():
             if docx_pages_dir.exists():
                 shutil.rmtree(docx_pages_dir)
             docx_pages_dir.mkdir(parents=True)
-            run(["pdftoppm", "-png", "-r", "110", str(docx_pdf), str(docx_pages_dir / "page")])
+            run_resolved("pdftoppm", ["-png", "-r", "110", str(docx_pdf), str(docx_pages_dir / "page")])
             docx_shots = sorted(docx_pages_dir.glob("page-*.png"))
             docx_shot_detail = f"; {len(docx_shots)} screenshots in {docx_pages_dir}"
         gates["docx_preview"] = {
