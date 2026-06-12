@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Install TinyTeX
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          quarto install tinytex --no-prompt
+          "$env:APPDATA\TinyTeX\bin\windows" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install system tools
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          choco install pandoc -y
+          choco install libreoffice-fresh -y
+
+      - name: Install Poppler
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $zip = Join-Path $env:RUNNER_TEMP "poppler.zip"
+          $dest = Join-Path $env:RUNNER_TEMP "poppler"
+          Invoke-WebRequest -Uri "https://github.com/oschwartz10612/poppler-windows/releases/download/v26.02.0-0/Release-26.02.0-0.zip" -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $dest
+          $bin = Get-ChildItem -Path $dest -Recurse -Directory -Filter bin | Where-Object { $_.FullName -like "*Library*bin" } | Select-Object -First 1
+          if (-not $bin) { throw "Poppler Library\bin directory not found" }
+          $bin.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m pip install --upgrade pip
+          python -m pip install python-docx matplotlib pypdf
+
+      - name: Install Source fonts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $sansZip = Join-Path $env:RUNNER_TEMP "source-sans.zip"
+          $serifZip = Join-Path $env:RUNNER_TEMP "source-serif.zip"
+          $sansOut = Join-Path $env:RUNNER_TEMP "source-sans"
+          $serifOut = Join-Path $env:RUNNER_TEMP "source-serif"
+          $sansDir = Join-Path $env:USERPROFILE ".fonts\source-sans"
+          $serifDir = Join-Path $env:USERPROFILE ".fonts\source-serif"
+          New-Item -ItemType Directory -Force -Path $sansDir, $serifDir | Out-Null
+          Invoke-WebRequest -Uri "https://github.com/adobe-fonts/source-sans/releases/download/3.052R/OTF-source-sans-3.052R.zip" -OutFile $sansZip
+          Invoke-WebRequest -Uri "https://github.com/adobe-fonts/source-serif/releases/download/4.005R/source-serif-4.005_Desktop.zip" -OutFile $serifZip
+          Expand-Archive -Path $sansZip -DestinationPath $sansOut
+          Expand-Archive -Path $serifZip -DestinationPath $serifOut
+          Get-ChildItem -Path $sansOut -Recurse -Filter *.otf | Copy-Item -Destination $sansDir -Force
+          Get-ChildItem -Path $serifOut -Recurse -Filter *.otf | Copy-Item -Destination $serifDir -Force
+
+      - name: Check environment
+        shell: pwsh
+        run: python checks/check_env.py
+
+      - name: Run sample
+        shell: pwsh
+        run: python tests/run_sample.py
+
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Install TinyTeX
+        run: |
+          set -euo pipefail
+          quarto install tinytex --no-prompt
+          echo "$HOME/.TinyTeX/bin/x86_64-linux" >> "$GITHUB_PATH"
+
+      - name: Install system tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y pandoc poppler-utils libreoffice unzip
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python packages
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install python-docx matplotlib pypdf
+
+      - name: Install Source fonts
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.fonts/source-sans" "$HOME/.fonts/source-serif"
+          curl -L -o "$RUNNER_TEMP/source-sans.zip" "https://github.com/adobe-fonts/source-sans/releases/download/3.052R/OTF-source-sans-3.052R.zip"
+          curl -L -o "$RUNNER_TEMP/source-serif.zip" "https://github.com/adobe-fonts/source-serif/releases/download/4.005R/source-serif-4.005_Desktop.zip"
+          unzip -q "$RUNNER_TEMP/source-sans.zip" -d "$RUNNER_TEMP/source-sans"
+          unzip -q "$RUNNER_TEMP/source-serif.zip" -d "$RUNNER_TEMP/source-serif"
+          find "$RUNNER_TEMP/source-sans" -name "*.otf" -exec cp {} "$HOME/.fonts/source-sans/" \;
+          find "$RUNNER_TEMP/source-serif" -name "*.otf" -exec cp {} "$HOME/.fonts/source-serif/" \;
+          fc-cache -f "$HOME/.fonts" || true
+
+      - name: Check environment
+        run: python checks/check_env.py
+
+      - name: Run sample
+        run: python tests/run_sample.py
