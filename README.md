@@ -16,13 +16,23 @@ Within a theme the contract may override the accent color and the base font size
 
 ## Installation
 
-Clone this repository into the Claude skills directory:
+The simplest path is to let your AI coding agent do the whole installation. Paste one line into Claude Code:
+
+```text
+Install the oneshot-doc skill following https://github.com/dkacz/oneshot-doc/blob/main/INSTALL.md
+```
+
+`INSTALL.md` walks the agent through cloning, dependency checks (`checks/check_env.py`), per-OS installs, and fonts, and ends with a verified environment.
+
+Manual route: clone this repository into the Claude skills directory and install the dependencies below yourself.
 
 ```bash
-git clone <repo-url> ~/.claude/skills/oneshot-doc
+git clone https://github.com/dkacz/oneshot-doc ~/.claude/skills/oneshot-doc
 ```
 
 Then start Claude Code normally. The skill activates when the operator asks for a finished document from source materials.
+
+Supported platforms: macOS and Linux. On Windows use WSL with Ubuntu and follow the Debian/Ubuntu steps inside WSL; native Windows is untested because the pipeline needs `soffice` and Poppler tools on PATH.
 
 ## Dependencies
 
