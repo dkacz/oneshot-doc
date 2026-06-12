@@ -140,6 +140,12 @@ def print_install_hints(results: list[CheckResult]) -> None:
     )
     print("Install missing Python packages: python3 -m pip install python-docx matplotlib pypdf")
     print(
+        "If pip refuses with 'externally-managed-environment' (PEP 668): on Debian/Ubuntu "
+        "prefer sudo apt install python3-docx python3-matplotlib python3-pypdf; otherwise "
+        "add --break-system-packages, or use a virtual environment and run the skill "
+        "scripts with that environment's python3."
+    )
+    print(
         "Install missing fonts: download Source Sans 3 and Source Serif 4 from "
         "github.com/adobe-fonts into ~/.fonts/source-sans and ~/.fonts/source-serif, "
         "or set ONESHOT_FONTS_DIR."

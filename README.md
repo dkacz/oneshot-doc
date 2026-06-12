@@ -59,8 +59,10 @@ Debian/Ubuntu:
 ```bash
 # Install Quarto from the .deb package at https://quarto.org/docs/get-started/
 sudo apt install pandoc poppler-utils libreoffice texlive-xetex texlive-luatex
-pip3 install python-docx matplotlib pypdf
+sudo apt install python3-docx python3-matplotlib python3-pypdf
 ```
+
+Note on PEP 668: recent Homebrew and Debian/Ubuntu Pythons are externally managed, so a bare `pip3 install` fails with `externally-managed-environment`. On Debian/Ubuntu prefer the `apt` packages above. On macOS either run `pip3 install --break-system-packages python-docx matplotlib pypdf`, or create a virtual environment (`python3 -m venv ~/.venvs/oneshot-doc`) and make sure the skill's Python scripts run with that environment's interpreter.
 
 Install Source Sans 3 and Source Serif 4 from Adobe Fonts under the SIL Open Font License:
 
